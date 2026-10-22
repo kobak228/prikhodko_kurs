@@ -1,2 +1,4 @@
 db/variant.db
 db/load.sql
+sshkey
+sshkey.pub
