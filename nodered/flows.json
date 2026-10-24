@@ -1,6 +1,6 @@
 [
     {
-        "id": "a23383c650d0f009",
+        "id": "845eca1e4fdfa639",
         "type": "tab",
         "label": "Поток 1",
         "disabled": false,
@@ -8,9 +8,9 @@
         "env": []
     },
     {
-        "id": "535b68079f1c968e",
+        "id": "696dbd160641e067",
         "type": "inject",
-        "z": "a23383c650d0f009",
+        "z": "845eca1e4fdfa639",
         "name": "",
         "props": [
             {
@@ -21,84 +21,46 @@
                 "vt": "str"
             }
         ],
-        "repeat": "",
+        "repeat": "2",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 340,
-        "y": 340,
+        "x": 350,
+        "y": 440,
         "wires": [
             [
-                "e915e96fe1c0c0d6"
+                "e29fd3a8612d59d1"
             ]
         ]
     },
     {
-        "id": "e915e96fe1c0c0d6",
+        "id": "e29fd3a8612d59d1",
         "type": "file in",
-        "z": "a23383c650d0f009",
+        "z": "845eca1e4fdfa639",
         "name": "",
-        "filename": "C:\\Users\\10240811\\prikhodko\\data\\log.txt",
+        "filename": "C:\\Users\\Lyz1k\\prikhodko_kurs\\data\\log.txt",
         "filenameType": "str",
         "format": "utf8",
         "chunk": false,
         "sendError": false,
         "encoding": "none",
         "allProps": false,
-        "x": 680,
-        "y": 340,
-        "wires": [
-            [
-                "81c44dd238d55181",
-                "ac663018afb27831"
-            ]
-        ]
-    },
-    {
-        "id": "81c44dd238d55181",
-        "type": "debug",
-        "z": "a23383c650d0f009",
-        "name": "debug 1",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1020,
+        "x": 650,
         "y": 440,
-        "wires": []
-    },
-    {
-        "id": "ac663018afb27831",
-        "type": "function",
-        "z": "a23383c650d0f009",
-        "name": "function 1",
-        "func": "// msg.payload — весь текст лога одной строкой\nconst T = 2; // период опроса, с (Вариант №30)\n\n// Допустимые диапазоны для датчиков: s1 (MQ-2): 0-100%, s2 (LDR): 0-100%, s3 (SW): 0 или 1\nconst RANGES = { \n    s1:, \n    s2:, \n    s3: [0, 1] \n};\n\nconst text = String(msg.payload).replace(/^\\uFEFF/, ''); \nconst sql = [];\n\n// Разбиваем лог на отдельные строки\ntext.split(\\(/\\r\\)?\\n/).forEach(raw => { \n    const line = raw.trim();\n    if (!line) return;\n\n    // Строка вида: DATA n=3 s1=25.4 s2=60.0 s3=0\n    const parts = line.split(' ');\n    const kind = parts[0]; // DATA или EVENT \n    const f = {};\n\n    // Собираем пары ключ=значение\n    parts.slice(1).forEach(p => { \n        const kv = p.split('='); \n        if (kv[0] && kv[1]) {\n            f[kv[0]] = kv[1];\n        }\n    });\n\n    const n = parseInt(f.n); \n    if (isNaN(n)) return; \n    const t = n * T; // Вычисляем время t_s = n * T\n\n    if (kind === 'DATA') {\n        ['s1', 's2', 's3'].forEach(s => { \n            const v = parseFloat(f[s]);\n            if (!isNaN(v)) {\n                sql.push(`INSERT INTO readings(n,t_s,sensor,value) VALUES(${n},${t},'${s}',${v});`);\n            }\n            // Проверка выхода за границы диапазона (для генерации FAULT)\n            if (isNaN(v) || v < RANGES[s][0] || v > RANGES[s][1]) {\n                sql.push(`INSERT INTO events(n,t_s,type,message) VALUES(${n},${t},'FAULT','датчик ${s} вне диапазона');`);\n            }\n        });\n    } else if (kind === 'EVENT') {\n        sql.push(`INSERT INTO events(n,t_s,type,message) VALUES(${n},${t},'${f.type}','');`);\n    }\n});\n\n// Формируем заголовок очистки таблиц, чтобы данные при перезапуске не дублировались\nconst head = 'BEGIN;\\nDELETE FROM readings;\\nDELETE FROM events;\\n' + \"DELETE FROM sqlite_sequence WHERE name IN ('readings','events');\\n\";\nconst toFile = { payload: head + sql.join('\\n') + '\\nCOMMIT;\\n' }; \n\n// Отдаем результат на второй выход (для записи в файл/БД)\nreturn [null, toFile];\n",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 6,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 1020,
-        "y": 340,
         "wires": [
             [
-                "154556485fbe1988"
+                "4931859efa3dd030"
             ]
         ]
     },
     {
-        "id": "154556485fbe1988",
+        "id": "ed2017b3501c6c8a",
         "type": "debug",
-        "z": "a23383c650d0f009",
-        "name": "debug 2",
+        "z": "845eca1e4fdfa639",
+        "name": "debug 1",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -106,8 +68,86 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1220,
+        "x": 1120,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "4931859efa3dd030",
+        "type": "function",
+        "z": "845eca1e4fdfa639",
+        "name": "function 1",
+        "func": "\nconst T = 2;\nconst RANGES = {\n    s1: [0, 100],\n    s2: [0, 100],\n    s3: [0, 1]\n};\n\nconst text = String(msg.payload ?? \"\").replace(/^\\uFEFF/, \"\");\nconst sql = [];\n\ntext.split(/\\r?\\n/).forEach(raw => {\n    const line = raw.trim();\n    if (!line) return;\n\n    const parts = line.split(/\\s+/);\n    const kind = parts[0];\n    const f = {};\n\n    parts.slice(1).forEach(p => {\n        const i = p.indexOf(\"=\");\n        if (i > 0) {\n            f[p.slice(0, i)] = p.slice(i + 1);\n        }\n    });\n\n    const n = Number.parseInt(f.n, 10);\n    if (!Number.isInteger(n) || n < 1) return;\n\n    const t = n * T;\n\n    if (kind === \"DATA\") {\n        [\"s1\", \"s2\", \"s3\"].forEach(s => {\n            const v = Number(f[s]);\n\n            if (f[s] === undefined || !Number.isFinite(v)) {\n                sql.push(\n                    `INSERT INTO events(n,t_s,type,message) VALUES(${n},${t},'FAULT','датчик ${s}: некорректное значение');`\n                );\n                return;\n            }\n\n            sql.push(\n                `INSERT INTO readings(n,t_s,sensor,value) VALUES(${n},${t},'${s}',${v});`\n            );\n\n            if (v < RANGES[s][0] || v > RANGES[s][1]) {\n                sql.push(\n                    `INSERT INTO events(n,t_s,type,message) VALUES(${n},${t},'FAULT','датчик ${s} вне диапазона');`\n                );\n            }\n        });\n    } else if (kind === \"EVENT\") {\n        const type = String(f.type || \"\").replace(/'/g, \"''\");\n        if ([\"THRESHOLD\", \"NORMAL\"].includes(type)) {\n            sql.push(\n                `INSERT INTO events(n,t_s,type,message) VALUES(${n},${t},'${type}','');`\n            );\n        }\n    }\n});\n\nmsg.payload =\n    \"BEGIN;\\n\" +\n    \"DELETE FROM readings;\\n\" +\n    \"DELETE FROM events;\\n\" +\n    \"DELETE FROM sqlite_sequence WHERE name IN ('readings','events');\\n\" +\n    sql.join(\"\\n\") +\n    \"\\nCOMMIT;\\n\";\n\nreturn msg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 940,
         "y": 440,
+        "wires": [
+            [
+                "ed2017b3501c6c8a",
+                "0ead0d3ae523df91"
+            ]
+        ]
+    },
+    {
+        "id": "0ead0d3ae523df91",
+        "type": "file",
+        "z": "845eca1e4fdfa639",
+        "name": "",
+        "filename": "C:\\Users\\Lyz1k\\prikhodko_kurs\\db\\load.sql",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": true,
+        "overwriteFile": "true",
+        "encoding": "none",
+        "x": 1230,
+        "y": 440,
+        "wires": [
+            [
+                "17051b6accedfae3"
+            ]
+        ]
+    },
+    {
+        "id": "17051b6accedfae3",
+        "type": "exec",
+        "z": "845eca1e4fdfa639",
+        "command": "C:\\Users\\Lyz1k\\tools\\sqlite\\sqlite3.exe",
+        "addpay": "",
+        "append": "\"C:\\Users\\Lyz1k\\prikhodko_kurs\\db\\variant.db\" \".read C:\\Users\\Lyz1k\\prikhodko_kurs\\db\\schema.sql\" \".read C:\\Users\\Lyz1k\\prikhodko_kurs\\db\\load.sql\"",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "load database",
+        "x": 1560,
+        "y": 440,
+        "wires": [
+            [],
+            [],
+            [
+                "830a5d15a0ebacd0"
+            ]
+        ]
+    },
+    {
+        "id": "830a5d15a0ebacd0",
+        "type": "debug",
+        "z": "845eca1e4fdfa639",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1800,
+        "y": 500,
         "wires": []
     }
 ]
